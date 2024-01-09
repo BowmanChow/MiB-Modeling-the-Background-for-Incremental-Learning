@@ -1,7 +1,9 @@
 import utils
 import argparser
 import os
+import sys
 from utils.logger import Logger
+from utils.logger import Tee, make_log_dir
 
 from apex.parallel import DistributedDataParallel
 from apex import amp
@@ -113,9 +115,12 @@ def main(opts):
     task_name = f"{opts.task}-{opts.dataset}"
     logdir_full = f"{opts.logdir}/{task_name}/{opts.name}/"
     if rank == 0:
-        logger = Logger(logdir_full, rank=rank, debug=opts.debug, summary=opts.visualize, step=opts.step)
+        log_dir = make_log_dir(opts.logdir, f"{task_name}-{opts.name}-{opts.method}-step-{opts.step}")
+        sys.stdout = Tee(os.path.join(log_dir, "print.log"))
+    if rank == 0:
+        logger = Logger(logdir_full, rank=rank, debug=opts.debug, summary=opts.visualize, step=opts.step, filename=sys.stdout)
     else:
-        logger = Logger(logdir_full, rank=rank, debug=opts.debug, summary=False)
+        logger = Logger(logdir_full, rank=rank, debug=opts.debug, summary=False, filename=sys.stdout)
 
     logger.print(f"Device: {device}")
 

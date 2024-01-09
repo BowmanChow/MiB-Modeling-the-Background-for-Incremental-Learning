@@ -1,4 +1,7 @@
+import datetime
 import logging
+import sys
+import os
 
 
 class Logger:
@@ -20,7 +23,7 @@ class Logger:
             self.type = 'None'
 
         self.debug_flag = debug
-        logging.basicConfig(filename=filename, level=logging.INFO, format=f'%(levelname)s:rank{rank}: %(message)s')
+        logging.basicConfig(stream=filename, level=logging.INFO, format=f'%(levelname)s:rank{rank}: %(message)s')
 
         if rank == 0:
             logging.info(f"[!] starting logging at directory {logdir}")
@@ -90,3 +93,37 @@ class Logger:
                 text += f"<tr><td>{k}</td>" + " ".join([str(f'<td>{x}</td>') for x in res.values()]) + "</tr>"
             text += "</table>"
             self.logger.add_text(tag, text)
+
+
+
+class Tee(object):
+    def __init__(self, filename):
+        self.file_name = filename
+        with open(self.file_name, "w") as f:
+            pass
+        self.stdout = sys.stdout
+
+    def close(self):
+        sys.stdout = self.stdout
+
+    def write(self, data):
+        with open(self.file_name, "a") as f:
+            f.write(data)
+        self.stdout.write(data)
+
+    def flush(self):
+        self.stdout.flush()
+
+
+
+def get_format_time():
+    return datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
+
+
+def make_log_dir(log_dir: str, name: str):
+    new_log_dir = os.path.join(
+        log_dir, f"{get_format_time()}_{name}")
+    if os.path.isdir(new_log_dir):
+        raise Exception(f"{new_log_dir} already exist ! abort ...")
+    os.makedirs(new_log_dir)
+    return new_log_dir

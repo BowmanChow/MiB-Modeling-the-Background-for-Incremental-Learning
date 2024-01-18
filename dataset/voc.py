@@ -114,6 +114,18 @@ class VOCSegmentationIncremental(data.Dataset):
 
         full_voc = VOCSegmentation(root, 'train' if train else 'val', is_aug=True, transform=None)
 
+        print(f"""
+{type(self).__name__} :
+    {root = }
+    {train = }
+    {transform = }
+    {labels = }
+    {labels_old = }
+    {idxs_path = }
+    {masking = }
+    {overlap = }
+""")
+
         self.labels = []
         self.labels_old = []
 
